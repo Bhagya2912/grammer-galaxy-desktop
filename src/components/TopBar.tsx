@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Bell, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { Input } from '@/components/ui/input';
 const TopBar = () => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,23 +26,40 @@ const TopBar = () => {
     // Implement search functionality
   };
 
+  const navigateTo = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <header className="bg-background shadow-sm border-b border-border h-16 flex items-center px-6">
       <div className="w-full flex items-center justify-between">
-        <form onSubmit={handleSearch} className="max-w-md w-full">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              type="search"
-              placeholder="Search courses, lessons, or forums..."
-              className="w-full pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </form>
+        <div className="flex items-center space-x-6">
+          <Button variant="ghost" onClick={() => navigateTo('/')}>Home</Button>
+          <Button variant="ghost" onClick={() => navigateTo('/courses')}>Courses</Button>
+          <Button variant="ghost" onClick={() => navigateTo('/live-classes')}>Live Classes</Button>
+          <Button variant="ghost" onClick={() => navigateTo('/forum')}>Forum</Button>
+          {!user && (
+            <>
+              <Button variant="ghost" onClick={() => navigateTo('/registration')}>Registration</Button>
+              <Button variant="ghost" onClick={() => navigateTo('/auth')}>Login</Button>
+            </>
+          )}
+        </div>
 
         <div className="flex items-center gap-4">
+          <form onSubmit={handleSearch} className="max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="search"
+                placeholder="Search courses, lessons, or forums..."
+                className="w-full pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </form>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative p-2">
@@ -85,13 +104,13 @@ const TopBar = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                <DropdownMenuItem onClick={() => navigateTo('/profile')}>
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.href = '/dashboard'}>
+                <DropdownMenuItem onClick={() => navigateTo('/dashboard')}>
                   Dashboard
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                <DropdownMenuItem onClick={() => navigateTo('/settings')}>
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -101,7 +120,7 @@ const TopBar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button onClick={() => window.location.href = '/auth'}>Login</Button>
+            <Button onClick={() => navigateTo('/auth')}>Login</Button>
           )}
         </div>
       </div>

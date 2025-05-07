@@ -76,10 +76,9 @@ const Index = () => {
               Explore Courses
             </Button>
             <Button 
-              size="lg" 
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-brand-blue"
-              onClick={() => navigate('/auth')}
+              size="lg"
+              className="bg-brand-teal text-white hover:bg-brand-teal/90"
+              onClick={() => navigate('/registration')}
             >
               Sign Up Now
             </Button>
@@ -248,13 +247,20 @@ const Index = () => {
           <p className="text-lg md:text-xl text-center max-w-2xl mx-auto">
             Join thousands of students who have transformed their communication skills with Grammer's Gallery.
           </p>
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-8 gap-4">
             <Button 
               size="lg"
               className="bg-white text-brand-blue hover:bg-gray-100"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/courses')}
             >
-              Get Started Today
+              Browse Courses
+            </Button>
+            <Button 
+              size="lg"
+              className="bg-brand-teal text-white hover:bg-brand-teal/90 border border-white"
+              onClick={() => navigate('/registration')}
+            >
+              Register Now
             </Button>
           </div>
         </div>

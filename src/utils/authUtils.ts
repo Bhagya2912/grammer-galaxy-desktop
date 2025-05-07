@@ -6,6 +6,16 @@ export interface User {
   role: 'admin' | 'staff' | 'student';
   avatar?: string;
   enrolledCourses?: string[];
+  isVerified?: boolean;
+  studentId?: string;
+  completedTests?: {
+    id: string;
+    courseName: string;
+    testName: string;
+    score: number;
+    grade: string;
+    completionDate: string;
+  }[];
 }
 
 // Mock users for demo
@@ -16,6 +26,7 @@ const MOCK_USERS: User[] = [
     email: 'admin@grammar.gallery',
     role: 'admin',
     avatar: '',
+    isVerified: true,
   },
   {
     id: '2',
@@ -23,6 +34,7 @@ const MOCK_USERS: User[] = [
     email: 'staff@grammar.gallery',
     role: 'staff',
     avatar: '',
+    isVerified: true,
   },
   {
     id: '3',
@@ -31,6 +43,18 @@ const MOCK_USERS: User[] = [
     role: 'student',
     avatar: '',
     enrolledCourses: ['1', '3'],
+    isVerified: true,
+    studentId: 'GG2025001',
+    completedTests: [
+      {
+        id: '1',
+        courseName: 'English Grammar Basics',
+        testName: 'Fundamentals of Grammar Quiz',
+        score: 85,
+        grade: 'A',
+        completionDate: '2025-05-01',
+      }
+    ]
   }
 ];
 
@@ -59,13 +83,22 @@ export const registerUser = (name: string, email: string, password: string): Pro
       if (existingUser) {
         reject(new Error('User already exists'));
       } else {
+        const studentIdCounter = MOCK_USERS.filter(u => u.role === 'student').length + 1;
+        const studentId = `GG2025${String(studentIdCounter).padStart(3, '0')}`;
+        
         const newUser: User = {
           id: (MOCK_USERS.length + 1).toString(),
           name,
           email,
           role: 'student',
           avatar: '',
+          isVerified: false,
+          studentId,
+          enrolledCourses: [],
+          completedTests: []
         };
+        
+        MOCK_USERS.push(newUser);
         
         // Store in local storage
         localStorage.setItem('grammerGalleryUser', JSON.stringify(newUser));

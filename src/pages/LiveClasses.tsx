@@ -1,278 +1,303 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
+import {
+  Calendar,
+  CalendarCell,
+  CalendarCellTrigger,
+  CalendarGrid,
+  CalendarHeader,
+  CalendarHeading,
+  CalendarMonths,
+  CalendarNextButton,
+  CalendarPrevButton,
+} from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { CalendarIcon, Clock, Search, VideoIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 
-// Mock live classes data
-const liveClassesData = [
+// Mock live classes
+const upcomingClasses = [
   {
     id: '1',
     title: 'Common Grammar Mistakes',
     description: 'Live discussion on commonly made grammar mistakes in everyday writing.',
     date: '2025-05-15T18:00:00',
-    duration: '60 minutes',
-    instructor: 'Professor Johnson',
-    image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    category: 'Grammar',
-    capacity: 100,
-    enrolled: 78
+    duration: '1 hour',
+    instructor: {
+      name: 'Professor Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80',
+      bio: 'Professor of English with 15+ years of experience teaching grammar.'
+    },
+    level: 'All Levels',
+    capacity: 50,
+    enrolled: 32
   },
   {
     id: '2',
     title: 'Grammar for Content Writers',
     description: 'Special workshop focused on grammar rules essential for content creators.',
     date: '2025-05-22T15:30:00',
-    duration: '90 minutes',
-    instructor: 'Sarah Williams',
-    image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    category: 'Content Writing',
-    capacity: 75,
-    enrolled: 42
+    duration: '1.5 hours',
+    instructor: {
+      name: 'Sarah Williams',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80',
+      bio: 'Content writing expert with a passion for grammatically correct content.'
+    },
+    level: 'Intermediate',
+    capacity: 35,
+    enrolled: 21
   },
   {
     id: '3',
-    title: 'Business Email Writing',
-    description: 'Learn the proper grammar and formatting for professional business emails.',
-    date: '2025-05-28T14:00:00',
-    duration: '60 minutes',
-    instructor: 'David Chen',
-    image: 'https://images.unsplash.com/photo-1573497019414-e44d0392bfb4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80',
-    category: 'Business Writing',
-    capacity: 120,
-    enrolled: 95
+    title: 'Business Writing Essentials',
+    description: 'Learn the key grammar rules for professional business communication.',
+    date: '2025-06-01T10:00:00',
+    duration: '2 hours',
+    instructor: {
+      name: 'Michael Roberts',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80',
+      bio: 'Business communication specialist with expertise in professional writing.'
+    },
+    level: 'Advanced',
+    capacity: 30,
+    enrolled: 18
   },
   {
     id: '4',
-    title: 'Grammar for Academic Writing',
-    description: 'Understand the specific grammar requirements for academic papers and essays.',
-    date: '2025-06-05T16:00:00',
-    duration: '120 minutes',
-    instructor: 'Dr. Emily Roberts',
-    image: 'https://images.unsplash.com/photo-1568992687947-8a4011a11f57?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1932&q=80',
-    category: 'Academic',
-    capacity: 80,
-    enrolled: 35
-  },
+    title: 'Punctuation Masterclass',
+    description: 'Deep dive into the rules and nuances of punctuation in English.',
+    date: '2025-06-10T14:00:00',
+    duration: '1.5 hours',
+    instructor: {
+      name: 'Emily Chen',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80',
+      bio: 'Author and grammar expert specializing in punctuation.'
+    },
+    level: 'Intermediate',
+    capacity: 40,
+    enrolled: 28
+  }
+];
+
+const pastClasses = [
   {
     id: '5',
-    title: 'Creative Writing Grammar',
-    description: 'How to use grammar effectively in creative writing and storytelling.',
-    date: '2025-06-10T19:00:00',
-    duration: '90 minutes',
-    instructor: 'Michael Thompson',
-    image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    category: 'Creative Writing',
-    capacity: 100,
-    enrolled: 48
+    title: 'Verb Tenses Explained',
+    description: 'A comprehensive overview of verb tenses in English grammar.',
+    date: '2025-05-01T13:00:00',
+    duration: '1.5 hours',
+    instructor: {
+      name: 'Professor Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80'
+    },
+    recording: 'https://example.com/recordings/verb-tenses'
   },
+  {
+    id: '6',
+    title: 'Academic Writing Skills',
+    description: 'Learn the grammar rules essential for academic writing.',
+    date: '2025-04-25T15:00:00',
+    duration: '2 hours',
+    instructor: {
+      name: 'Dr. Robert Smith',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80'
+    },
+    recording: 'https://example.com/recordings/academic-writing'
+  }
 ];
 
 const LiveClasses = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Filter classes by search query and selected date
-  const filteredClasses = liveClassesData.filter(liveClass => {
-    const matchesSearch = liveClass.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          liveClass.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          liveClass.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesDate = !date || format(new Date(liveClass.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-    
-    return matchesSearch && matchesDate;
-  });
-
-  // Sort classes by date
-  const sortedClasses = [...filteredClasses].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  
+  // Get dates that have classes scheduled
+  const classDateObjects = upcomingClasses.map(cls => new Date(cls.date));
+  
+  // Filter classes for the selected date
+  const classesOnSelectedDate = upcomingClasses.filter(
+    cls => isSameDay(new Date(cls.date), selectedDate)
   );
-
-  // Group classes by month for calendar view
-  const classesWithDates = liveClassesData.map(liveClass => new Date(liveClass.date));
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-serif font-bold">Live Classes</h1>
-        <p className="text-muted-foreground">Join interactive grammar sessions with expert instructors</p>
+        <p className="text-muted-foreground">
+          Join live interactive sessions with our grammar experts
+        </p>
       </div>
       
-      <div className="flex flex-col gap-4 md:flex-row">
-        <div className="w-full md:w-3/4">
-          <div className="mb-6 flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search classes by title, description, or instructor..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button
-              variant="outline"
-              className="sm:w-auto"
-              onClick={() => {
-                setSearchQuery('');
-                setDate(undefined);
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-          
-          <Tabs defaultValue="list">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="list">List View</TabsTrigger>
-              <TabsTrigger value="card">Card View</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming Classes</TabsTrigger>
+              <TabsTrigger value="past">Past Recordings</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="list" className="mt-6 space-y-4">
-              {sortedClasses.length > 0 ? (
-                sortedClasses.map(liveClass => (
-                  <Card key={liveClass.id} className="overflow-hidden">
-                    <div className="flex flex-col md:flex-row">
-                      <div className="aspect-video md:w-1/4 overflow-hidden">
-                        <img 
-                          src={liveClass.image} 
-                          alt={liveClass.title} 
-                          className="w-full h-full object-cover"
-                        />
+            <TabsContent value="upcoming" className="space-y-6">
+              {upcomingClasses.map(cls => (
+                <Card key={cls.id} className="overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-4 h-full">
+                    <div className="md:col-span-1 bg-muted p-6 flex flex-col justify-center items-center text-center">
+                      <div className="text-4xl font-bold">
+                        {format(new Date(cls.date), 'dd')}
                       </div>
-                      <div className="flex-1 flex flex-col">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle>{liveClass.title}</CardTitle>
-                              <CardDescription>by {liveClass.instructor}</CardDescription>
-                            </div>
-                            <Badge>{liveClass.category}</Badge>
+                      <div className="text-xl">{format(new Date(cls.date), 'MMM')}</div>
+                      <div className="mt-2 text-muted-foreground">{format(new Date(cls.date), 'h:mm a')}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{cls.duration}</div>
+                    </div>
+                    
+                    <div className="md:col-span-3 p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-xl font-bold">{cls.title}</h3>
+                          <div className="flex items-center mt-2 mb-4">
+                            <Avatar className="h-6 w-6 mr-2">
+                              <AvatarImage src={cls.instructor.avatar} />
+                              <AvatarFallback>{cls.instructor.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm">{cls.instructor.name}</span>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="mb-4">{liveClass.description}</p>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <CalendarIcon size={16} />
-                              <span>{format(new Date(liveClass.date), 'PPP')}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock size={16} />
-                              <span>{format(new Date(liveClass.date), 'p')} ({liveClass.duration})</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="justify-between items-center mt-auto">
-                          <div className="text-sm text-muted-foreground">
-                            {liveClass.enrolled}/{liveClass.capacity} enrolled
-                          </div>
-                          <Button>Join Class</Button>
-                        </CardFooter>
+                        </div>
+                        <Badge variant="outline">{cls.level}</Badge>
+                      </div>
+                      
+                      <p className="text-muted-foreground mb-4">{cls.description}</p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                          {cls.enrolled} enrolled (of {cls.capacity} spots)
+                        </div>
+                        <Button>
+                          Join Class
+                        </Button>
                       </div>
                     </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No live classes match your search criteria.</p>
-                </div>
-              )}
+                  </div>
+                </Card>
+              ))}
             </TabsContent>
             
-            <TabsContent value="card" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedClasses.length > 0 ? (
-                  sortedClasses.map(liveClass => (
-                    <Card key={liveClass.id} className="overflow-hidden card-hover">
-                      <div className="aspect-video w-full overflow-hidden relative">
-                        <img 
-                          src={liveClass.image} 
-                          alt={liveClass.title} 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <Badge>{liveClass.category}</Badge>
+            <TabsContent value="past" className="space-y-6">
+              {pastClasses.map(cls => (
+                <Card key={cls.id} className="overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-4 h-full">
+                    <div className="md:col-span-1 bg-muted p-6 flex flex-col justify-center items-center text-center">
+                      <div className="text-4xl font-bold">
+                        {format(new Date(cls.date), 'dd')}
+                      </div>
+                      <div className="text-xl">{format(new Date(cls.date), 'MMM')}</div>
+                      <div className="mt-2 text-muted-foreground">{format(new Date(cls.date), 'h:mm a')}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{cls.duration}</div>
+                    </div>
+                    
+                    <div className="md:col-span-3 p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-xl font-bold">{cls.title}</h3>
+                          <div className="flex items-center mt-2 mb-4">
+                            <Avatar className="h-6 w-6 mr-2">
+                              <AvatarImage src={cls.instructor.avatar} />
+                              <AvatarFallback>{cls.instructor.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm">{cls.instructor.name}</span>
+                          </div>
                         </div>
                       </div>
-                      <CardHeader>
-                        <CardTitle>{liveClass.title}</CardTitle>
-                        <CardDescription>by {liveClass.instructor}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="line-clamp-2 mb-4">{liveClass.description}</p>
-                        <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <CalendarIcon size={16} />
-                            <span>{format(new Date(liveClass.date), 'PPP')}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock size={16} />
-                            <span>{format(new Date(liveClass.date), 'p')} ({liveClass.duration})</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="justify-between">
+                      
+                      <p className="text-muted-foreground mb-4">{cls.description}</p>
+                      
+                      <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
-                          {liveClass.enrolled}/{liveClass.capacity} enrolled
+                          Recording available
                         </div>
-                        <Button>Join Class</Button>
-                      </CardFooter>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-12 col-span-full">
-                    <p className="text-muted-foreground">No live classes match your search criteria.</p>
+                        <Button>
+                          Watch Recording
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+                </Card>
+              ))}
             </TabsContent>
           </Tabs>
         </div>
         
-        <div className="w-full md:w-1/4">
+        <div>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Class Calendar</CardTitle>
-              <CardDescription>Select a date to filter classes</CardDescription>
+              <CardTitle>Class Calendar</CardTitle>
+              <CardDescription>Find upcoming classes by date</CardDescription>
             </CardHeader>
             <CardContent>
               <Calendar
                 mode="single"
-                selected={date}
-                onSelect={setDate}
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
                 className="rounded-md border"
-                highlightedDates={classesWithDates}
+                components={{
+                  Cell: ({ day, ...props }) => {
+                    // Check if this date has classes
+                    const hasClasses = classDateObjects.some(classDate => 
+                      isSameDay(day.date, classDate)
+                    );
+                    
+                    return (
+                      <CalendarCell {...props}>
+                        <CalendarCellTrigger className={hasClasses ? "relative" : ""}>
+                          {day.day}
+                          {hasClasses && (
+                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                          )}
+                        </CalendarCellTrigger>
+                      </CalendarCell>
+                    );
+                  }
+                }}
               />
+              
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">
+                  Classes on {format(selectedDate, 'MMMM d, yyyy')}
+                </h4>
+                
+                {classesOnSelectedDate.length > 0 ? (
+                  <ul className="space-y-2">
+                    {classesOnSelectedDate.map(cls => (
+                      <li key={cls.id} className="text-sm p-2 hover:bg-muted rounded-md">
+                        <div className="font-medium">{cls.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(cls.date), 'h:mm a')} • {cls.duration}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No classes scheduled for this date
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
           
-          <div className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Hosting a Class?</CardTitle>
-                <CardDescription>Share your grammar expertise</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <VideoIcon className="text-brand-blue" size={20} />
-                  <span className="text-sm">Reach students globally</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="text-brand-blue" size={20} />
-                  <span className="text-sm">Flexible scheduling</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Apply to Teach</Button>
-              </CardFooter>
-            </Card>
-          </div>
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Have a Question?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>Need help with registration or have questions about our live classes?</p>
+              <Button variant="outline" className="w-full">
+                Contact Support
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
