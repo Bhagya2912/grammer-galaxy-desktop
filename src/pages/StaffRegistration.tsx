@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MOCK_COURSES, registerStudent, sendVerificationCode, verifyCode } from '@/utils/authUtils';
+import { registerStaff, sendVerificationCode, verifyCode } from '@/utils/authUtils';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,77 +24,66 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import OTPVerification from '@/components/OTPVerification';
 import { useToast } from '@/components/ui/use-toast';
 
-// Registration form validation schema
-const registrationSchema = z.object({
+// Staff registration form validation schema
+const staffRegistrationSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
   email: z.string().email({ message: "Invalid email address" }),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 characters" }),
+  department: z.string().min(2, { message: "Department is required" }),
+  qualifications: z.string().min(10, { message: "Please provide your qualifications" }),
+  idProof: z.string().optional(),
   password: z.string().min(8, { message: "Password must be at least 8 characters" })
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
       message: "Password must contain at least one lowercase letter, one uppercase letter, and one number"
     }),
   confirmPassword: z.string().min(8, { message: "Password must be at least 8 characters" }),
-  level: z.enum(["Beginner", "Intermediate", "Advanced"], {
-    required_error: "Please select your level",
-  }),
-  courseIds: z.array(z.string()).refine(value => value.length > 0, {
-    message: "Please select at least one course",
-  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
-type RegistrationFormValues = z.infer<typeof registrationSchema>;
+type StaffRegistrationFormValues = z.infer<typeof staffRegistrationSchema>;
 
-const Registration = () => {
+const StaffRegistration = () => {
   const [error, setError] = useState<string | null>(null);
   const [registeredUser, setRegisteredUser] = useState<any>(null);
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [verificationStep, setVerificationStep] = useState<'none' | 'email' | 'mobile'>('none');
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const form = useForm<RegistrationFormValues>({
-    resolver: zodResolver(registrationSchema),
+  const form = useForm<StaffRegistrationFormValues>({
+    resolver: zodResolver(staffRegistrationSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
       email: '',
       phoneNumber: '',
+      department: '',
+      qualifications: '',
+      idProof: '',
       password: '',
       confirmPassword: '',
-      level: "Beginner" as "Beginner" | "Intermediate" | "Advanced",
-      courseIds: [],
     },
   });
 
-  const onSubmit = async (values: RegistrationFormValues) => {
+  const onSubmit = async (values: StaffRegistrationFormValues) => {
     try {
       setError(null);
       const fullName = `${values.firstName} ${values.lastName}`;
       
-      // Register the student
-      const user = await registerStudent(
+      // Register the staff user
+      const user = await registerStaff(
         fullName,
         values.email,
         values.phoneNumber,
-        values.password,
-        values.level,
-        values.courseIds
+        values.department,
+        values.password
       );
       
       setRegisteredUser(user);
@@ -141,11 +130,11 @@ const Registration = () => {
       
       toast({
         title: "Mobile verified",
-        description: "Your account is verified. Please complete your application form and payment to access courses.",
+        description: "Your account is now pending admin approval. You will receive an email once approved.",
       });
       
-      // Redirect to application form page
-      navigate('/application-form', { state: { userId: registeredUser.id } });
+      // Redirect to login page with message
+      navigate('/auth', { state: { message: 'Registration complete. Your account is pending admin approval.' } });
     } catch (error) {
       throw error;
     }
@@ -159,17 +148,6 @@ const Registration = () => {
   const handleMobileResend = async () => {
     if (!registeredUser) return;
     await sendVerificationCode(registeredUser.pendingVerification.mobile, 'phone');
-  };
-
-  const handleCourseToggle = (courseId: string) => {
-    setSelectedCourses(current => {
-      const updated = current.includes(courseId)
-        ? current.filter(id => id !== courseId)
-        : [...current, courseId];
-      
-      form.setValue("courseIds", updated);
-      return updated;
-    });
   };
 
   // Show appropriate verification step
@@ -205,14 +183,14 @@ const Registration = () => {
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-serif font-bold">Student Registration</h1>
-          <p className="text-muted-foreground">Create an account to start learning at Grammer's Gallery</p>
+          <h1 className="text-3xl font-serif font-bold">Staff Registration</h1>
+          <p className="text-muted-foreground">Join Grammer's Gallery as a teaching staff</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Student Registration</CardTitle>
-            <CardDescription>Fill in your details to create a new account</CardDescription>
+            <CardTitle>Staff Registration</CardTitle>
+            <CardDescription>Fill in your details to create a staff account</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -289,22 +267,13 @@ const Registration = () => {
                 
                 <FormField
                   control={form.control}
-                  name="level"
+                  name="department"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your English Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Beginner">Beginner</SelectItem>
-                          <SelectItem value="Intermediate">Intermediate</SelectItem>
-                          <SelectItem value="Advanced">Advanced</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Department/Specialization</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Basic Grammar, Advanced Writing" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -312,36 +281,37 @@ const Registration = () => {
                 
                 <FormField
                   control={form.control}
-                  name="courseIds"
-                  render={() => (
+                  name="qualifications"
+                  render={({ field }) => (
                     <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Select Courses</FormLabel>
-                        <FormDescription>
-                          Choose one or more courses you'd like to enroll in
-                        </FormDescription>
-                      </div>
-                      {MOCK_COURSES.map((course) => (
-                        <FormItem
-                          key={course.id}
-                          className="flex flex-row items-start space-x-3 space-y-0"
-                        >
-                          <FormControl>
-                            <Checkbox
-                              checked={selectedCourses.includes(course.id)}
-                              onCheckedChange={() => handleCourseToggle(course.id)}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="cursor-pointer">
-                              {course.name} <span className="text-muted-foreground text-sm">({course.level})</span>
-                            </FormLabel>
-                            <FormDescription>
-                              ₹{course.fee}
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      ))}
+                      <FormLabel>Qualifications</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Please describe your educational background and teaching experience"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="idProof"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Upload ID Proof/Certification</FormLabel>
+                      <FormControl>
+                        <Input type="file" className="cursor-pointer" onChange={(e) => {
+                          const fileName = e.target.files?.[0]?.name || '';
+                          field.onChange(fileName);
+                        }} />
+                      </FormControl>
+                      <FormDescription>
+                        Upload a scanned copy of your ID or certification
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -386,9 +356,6 @@ const Registration = () => {
             <div className="text-sm text-muted-foreground text-center w-full">
               <p>Already have an account? <Button variant="link" onClick={() => navigate('/auth')} className="p-0 h-auto">Login</Button></p>
             </div>
-            <div className="text-sm text-muted-foreground text-center w-full">
-              <p>Are you staff? <Button variant="link" onClick={() => navigate('/staff-registration')} className="p-0 h-auto">Staff Registration</Button></p>
-            </div>
           </CardFooter>
         </Card>
         
@@ -400,7 +367,7 @@ const Registration = () => {
   );
 };
 
-export default Registration;
+export default StaffRegistration;
 
 function verifyEmail(id: string): Promise<any> {
   return new Promise((resolve) => {
