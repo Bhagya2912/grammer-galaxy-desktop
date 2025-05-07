@@ -1,6 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, loginUser as loginUserApi, registerUser as registerUserApi, logoutUser as logoutUserApi, getCurrentUser } from '../utils/authUtils';
+import { 
+  User, 
+  loginUser as loginUserApi, 
+  registerStudent, 
+  registerStaff, 
+  logoutUser as logoutUserApi, 
+  getCurrentUser 
+} from '../utils/authUtils';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
@@ -57,7 +64,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string): Promise<void> => {
     try {
       setLoading(true);
-      const user = await registerUserApi(name, email, password);
+      // Using registerStudent as the default registration method with basic parameters
+      // For more detailed registration, direct use of registerStudent or registerStaff
+      // with all required parameters should be used instead of this simplified version
+      const user = await registerStudent(
+        name,
+        email,
+        "Not provided", // Phone (would need to be added to the interface)
+        password,
+        "Beginner", // Default level
+        [] // No courses selected by default
+      );
       setUser(user);
       toast({
         title: 'Registration successful',
