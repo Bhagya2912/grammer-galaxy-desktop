@@ -1,19 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Calendar,
-  CalendarCell,
-  CalendarCellTrigger,
-  CalendarGrid,
-  CalendarHeader,
-  CalendarHeading,
-  CalendarMonths,
-  CalendarNextButton,
-  CalendarPrevButton,
-} from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -241,23 +230,15 @@ const LiveClasses = () => {
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 className="rounded-md border"
-                components={{
-                  Cell: ({ day, ...props }) => {
-                    // Check if this date has classes
-                    const hasClasses = classDateObjects.some(classDate => 
-                      isSameDay(day.date, classDate)
-                    );
-                    
-                    return (
-                      <CalendarCell {...props}>
-                        <CalendarCellTrigger className={hasClasses ? "relative" : ""}>
-                          {day.day}
-                          {hasClasses && (
-                            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                          )}
-                        </CalendarCellTrigger>
-                      </CalendarCell>
-                    );
+                showOutsideDays={true}
+                modifiers={{
+                  hasClass: classDateObjects
+                }}
+                modifiersStyles={{
+                  hasClass: {
+                    fontWeight: 'bold',
+                    textDecoration: 'underline',
+                    color: 'var(--primary)'
                   }
                 }}
               />
