@@ -17,11 +17,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container flex h-screen">
       <Sidebar />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
-        <main className="main-content animate-fade-in">
+        <main className="main-content p-6 overflow-auto animate-fade-in">
           {children}
         </main>
       </div>

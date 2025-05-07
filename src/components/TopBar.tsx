@@ -14,6 +14,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
+import { cn } from '@/lib/utils';
 
 const TopBar = () => {
   const { user, logout } = useAuth();
@@ -33,17 +43,97 @@ const TopBar = () => {
   return (
     <header className="bg-background shadow-sm border-b border-border h-16 flex items-center px-6">
       <div className="w-full flex items-center justify-between">
-        <div className="flex items-center space-x-6">
-          <Button variant="ghost" onClick={() => navigateTo('/')}>Home</Button>
-          <Button variant="ghost" onClick={() => navigateTo('/courses')}>Courses</Button>
-          <Button variant="ghost" onClick={() => navigateTo('/live-classes')}>Live Classes</Button>
-          <Button variant="ghost" onClick={() => navigateTo('/forum')}>Forum</Button>
-          {!user && (
-            <>
-              <Button variant="ghost" onClick={() => navigateTo('/registration')}>Registration</Button>
-              <Button variant="ghost" onClick={() => navigateTo('/auth')}>Login</Button>
-            </>
-          )}
+        <div className="flex items-center gap-2">
+          {/* Logo/Brand Name */}
+          <Button variant="ghost" className="font-serif font-bold text-lg" onClick={() => navigateTo('/')}>
+            Grammer's Gallery
+          </Button>
+
+          {/* Main Navigation */}
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Button variant="ghost" onClick={() => navigateTo('/')}>Home</Button>
+              </NavigationMenuItem>
+              
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => navigateTo('/courses')}>
+                          <div>
+                            <div className="text-sm font-medium">Courses</div>
+                            <p className="text-xs text-muted-foreground">Browse all grammar courses</p>
+                          </div>
+                        </Button>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => navigateTo('/live-classes')}>
+                          <div>
+                            <div className="text-sm font-medium">Live Classes</div>
+                            <p className="text-xs text-muted-foreground">Join interactive teaching sessions</p>
+                          </div>
+                        </Button>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => navigateTo('/forum')}>
+                          <div>
+                            <div className="text-sm font-medium">Forum</div>
+                            <p className="text-xs text-muted-foreground">Discuss with community members</p>
+                          </div>
+                        </Button>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {user ? (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>My Learning</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4">
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Button variant="ghost" className="w-full justify-start" onClick={() => navigateTo('/dashboard')}>
+                            <div>
+                              <div className="text-sm font-medium">Dashboard</div>
+                              <p className="text-xs text-muted-foreground">Track your progress</p>
+                            </div>
+                          </Button>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Button variant="ghost" className="w-full justify-start" onClick={() => navigateTo('/profile')}>
+                            <div>
+                              <div className="text-sm font-medium">Profile</div>
+                              <p className="text-xs text-muted-foreground">Manage your account</p>
+                            </div>
+                          </Button>
+                        </NavigationMenuLink>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ) : (
+                <>
+                  <NavigationMenuItem>
+                    <Button variant="ghost" onClick={() => navigateTo('/registration')}>Register</Button>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Button variant="ghost" onClick={() => navigateTo('/staff-registration')}>Staff Registration</Button>
+                  </NavigationMenuItem>
+                </>
+              )}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
         <div className="flex items-center gap-4">
@@ -60,35 +150,37 @@ const TopBar = () => {
             </div>
           </form>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative p-2">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <div className="flex flex-col gap-1">
-                  <p className="font-medium">New course available</p>
-                  <p className="text-sm text-muted-foreground">Advanced Grammar Rules is now available</p>
-                  <p className="text-xs text-muted-foreground mt-1">2 hours ago</p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <div className="flex flex-col gap-1">
-                  <p className="font-medium">Live class starting soon</p>
-                  <p className="text-sm text-muted-foreground">Join "Common Grammar Mistakes" in 30 minutes</p>
-                  <p className="text-xs text-muted-foreground mt-1">30 minutes ago</p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="justify-center">
-                <Button variant="link" className="w-full">View all notifications</Button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative p-2">
+                  <Bell size={20} />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <div className="flex flex-col gap-1">
+                    <p className="font-medium">New course available</p>
+                    <p className="text-sm text-muted-foreground">Advanced Grammar Rules is now available</p>
+                    <p className="text-xs text-muted-foreground mt-1">2 hours ago</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <div className="flex flex-col gap-1">
+                    <p className="font-medium">Live class starting soon</p>
+                    <p className="text-sm text-muted-foreground">Join "Common Grammar Mistakes" in 30 minutes</p>
+                    <p className="text-xs text-muted-foreground mt-1">30 minutes ago</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="justify-center">
+                  <Button variant="link" className="w-full">View all notifications</Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {user ? (
             <DropdownMenu>
