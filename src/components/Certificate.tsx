@@ -1,129 +1,123 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Award, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 interface CertificateProps {
-  type: 'enrollment' | 'completion';
   studentName: string;
-  studentId: string;
-  courseName: string;
-  date: string;
-  grade?: string;
+  courseTitle: string;
+  completionDate: string;
   score?: number;
+  grade?: string;
+  testName?: string;
+  studentId: string;
+  type: 'enrollment' | 'completion';
 }
 
-const Certificate = ({ 
-  type, 
-  studentName, 
-  studentId, 
-  courseName, 
-  date, 
-  grade, 
-  score 
-}: CertificateProps) => {
-  
-  const printCertificate = () => {
-    window.print();
-  };
+const Certificate: React.FC<CertificateProps> = ({
+  studentName,
+  courseTitle,
+  completionDate,
+  score,
+  grade,
+  testName,
+  studentId,
+  type,
+}) => {
+  const formattedDate = format(new Date(completionDate), 'MMMM d, yyyy');
   
   return (
-    <div className="p-8 bg-white max-w-4xl mx-auto print:p-0">
-      <Card className="border-4 border-brand-teal print:border-2">
-        <CardHeader className="text-center border-b border-gray-200 bg-muted/30">
-          <div className="flex justify-center mb-4">
-            {type === 'enrollment' ? (
-              <BookOpen className="h-16 w-16 text-brand-blue" />
-            ) : (
-              <Award className="h-16 w-16 text-brand-teal" />
-            )}
-          </div>
-          <CardTitle className="text-3xl font-serif mb-2">
-            Grammer's Gallery
-          </CardTitle>
-          <div className="text-xl font-medium text-brand-blue">
-            {type === 'enrollment' ? 'Certificate of Enrollment' : 'Certificate of Completion'}
-          </div>
-        </CardHeader>
-        
-        <CardContent className="py-8 px-6 text-center space-y-6">
-          <div className="mb-8">
-            <p className="text-lg">This is to certify that</p>
-            <h2 className="text-3xl font-serif font-bold my-3">{studentName}</h2>
-            <p className="text-lg">Student ID: <span className="font-medium">{studentId}</span></p>
-          </div>
-          
-          {type === 'enrollment' ? (
-            <p className="text-lg">
-              has successfully enrolled in the course
-              <span className="block text-2xl font-serif font-bold my-3">{courseName}</span>
-              on <span className="font-medium">{date}</span>
-            </p>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-lg">
-                has successfully completed the course
-                <span className="block text-2xl font-serif font-bold my-3">{courseName}</span>
-              </p>
-              
-              <div className="flex justify-center gap-8 my-6">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Grade</p>
-                  <p className="text-3xl font-bold text-brand-blue">{grade}</p>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Score</p>
-                  <p className="text-3xl font-bold text-brand-teal">{score}%</p>
-                </div>
-              </div>
-              
-              <p className="text-lg">Completed on <span className="font-medium">{date}</span></p>
-            </div>
-          )}
-          
-          <div className="mt-12 pt-8 border-t border-gray-200 flex justify-between items-center">
-            <div className="text-left">
-              <div className="font-medium">Prof. Johnson</div>
-              <div className="text-sm text-muted-foreground">Course Director</div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm text-muted-foreground">Verified Certificate</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="mt-4 flex justify-end print:hidden">
-        <Button onClick={printCertificate} className="gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-          </svg>
-          Print Certificate
-        </Button>
+    <div className="certificate-container w-[800px] h-[600px] bg-white border-8 border-double border-brand-blue/40 p-8 mx-auto my-8 relative overflow-hidden">
+      {/* Background watermark */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+        <div className="text-9xl font-serif font-bold text-brand-blue">GG</div>
       </div>
       
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
+      {/* Certificate header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-serif font-bold text-brand-blue">Grammer's Gallery</h1>
+        <div className="h-1 w-32 bg-brand-teal mx-auto my-4"></div>
+        <h2 className="text-2xl text-gray-600">
+          {type === 'enrollment' ? 'Certificate of Enrollment' : 'Certificate of Completion'}
+        </h2>
+      </div>
+      
+      {/* Certificate content */}
+      <div className="text-center mb-12">
+        <p className="text-lg mb-4">This is to certify that</p>
+        <h3 className="text-3xl font-serif font-bold text-gray-800 mb-4">{studentName}</h3>
+        <p className="text-lg mb-6">
+          {type === 'enrollment' 
+            ? `has successfully enrolled in the course` 
+            : `has successfully completed the ${testName || 'course'}`}
+        </p>
+        <h3 className="text-2xl font-serif font-bold text-brand-teal mb-6">
+          "{courseTitle}"
+        </h3>
+        
+        {type === 'completion' && score !== undefined && grade && (
+          <div className="flex justify-center items-center space-x-12 mb-6">
+            <div>
+              <span className="block text-gray-600">Score</span>
+              <span className="text-xl font-bold">{score}%</span>
+            </div>
+            <div>
+              <span className="block text-gray-600">Grade</span>
+              <span className="text-xl font-bold">{grade}</span>
+            </div>
+          </div>
+        )}
+        
+        <p className="text-lg">
+          Student ID: <span className="font-medium">{studentId}</span>
+        </p>
+        <p className="text-lg">
+          {type === 'enrollment' ? 'Enrollment Date' : 'Completion Date'}: <span className="font-medium">{formattedDate}</span>
+        </p>
+      </div>
+      
+      {/* Certificate footer */}
+      <div className="flex justify-between items-end mt-16">
+        <div className="text-center w-48">
+          <div className="border-t border-gray-400 pt-2">
+            <p className="font-serif text-gray-600">Administrator</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-center">
+          <div className="w-24 h-24 bg-contain bg-center bg-no-repeat mb-2" 
+            style={{ backgroundImage: "url('/placeholder.svg')" }}></div>
+          <p className="text-sm text-gray-500">Official Seal</p>
+        </div>
+        
+        <div className="text-center w-48">
+          <div className="border-t border-gray-400 pt-2">
+            <p className="font-serif text-gray-600">Instructor</p>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .certificate-container, .certificate-container * {
+              visibility: visible;
+            }
+            .certificate-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              border: none;
+            }
+            .no-print {
+              display: none;
+            }
           }
-          .print-container, .print-container * {
-            visibility: visible;
-          }
-          .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

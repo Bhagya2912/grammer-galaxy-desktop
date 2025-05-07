@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { format, isSameDay } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
+import LiveLectureHost from '@/components/LiveLectureHost';
 
 // Mock live classes
 const upcomingClasses = [
@@ -101,8 +103,10 @@ const pastClasses = [
 
 const LiveClasses = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [hostingTab, setHostingTab] = useState('upcoming');
   
   // Get dates that have classes scheduled
   const classDateObjects = upcomingClasses.map(cls => new Date(cls.date));
@@ -112,21 +116,40 @@ const LiveClasses = () => {
     cls => isSameDay(new Date(cls.date), selectedDate)
   );
   
+  const isAdminOrStaff = user?.role === 'admin' || user?.role === 'staff';
+  
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-serif font-bold">Live Classes</h1>
-        <p className="text-muted-foreground">
-          Join live interactive sessions with our grammar experts
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-serif font-bold">Live Classes</h1>
+          <p className="text-muted-foreground">
+            {isAdminOrStaff 
+              ? "Host and manage live interactive sessions for your students" 
+              : "Join live interactive sessions with our grammar experts"}
+          </p>
+        </div>
+        
+        {isAdminOrStaff && (
+          <Button onClick={() => setHostingTab('host')}>
+            Host a New Lecture
+          </Button>
+        )}
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs 
+            defaultValue="upcoming" 
+            value={isAdminOrStaff ? hostingTab : activeTab} 
+            onValueChange={isAdminOrStaff ? setHostingTab : setActiveTab}
+          >
             <TabsList>
               <TabsTrigger value="upcoming">Upcoming Classes</TabsTrigger>
               <TabsTrigger value="past">Past Recordings</TabsTrigger>
+              {isAdminOrStaff && (
+                <TabsTrigger value="host">Host Lecture</TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="upcoming" className="space-y-6">
@@ -164,7 +187,7 @@ const LiveClasses = () => {
                           {cls.enrolled} enrolled (of {cls.capacity} spots)
                         </div>
                         <Button>
-                          Join Class
+                          {isAdminOrStaff ? "Manage Class" : "Join Class"}
                         </Button>
                       </div>
                     </div>
@@ -206,15 +229,33 @@ const LiveClasses = () => {
                         <div className="text-sm text-muted-foreground">
                           Recording available
                         </div>
-                        <Button>
-                          Watch Recording
-                        </Button>
+                        {isAdminOrStaff ? (
+                          <div className="flex gap-2">
+                            <Button variant="outline">Edit Recording</Button>
+                            <Button>View Recording</Button>
+                          </div>
+                        ) : (
+                          <Button>
+                            Watch Recording
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
                 </Card>
               ))}
             </TabsContent>
+            
+            {isAdminOrStaff && (
+              <TabsContent value="host">
+                <LiveLectureHost 
+                  onStreamStart={(lectureDetails) => {
+                    // In a real app, this would save the lecture to backend
+                    console.log("Lecture started:", lectureDetails);
+                  }}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
         
@@ -268,17 +309,36 @@ const LiveClasses = () => {
             </CardContent>
           </Card>
           
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Have a Question?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p>Need help with registration or have questions about our live classes?</p>
-              <Button variant="outline" className="w-full">
-                Contact Support
-              </Button>
-            </CardContent>
-          </Card>
+          {isAdminOrStaff ? (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Lecture Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button variant="outline" className="w-full">
+                  Schedule New Class
+                </Button>
+                <Button variant="outline" className="w-full">
+                  Manage Recordings
+                </Button>
+                <Button variant="outline" className="w-full">
+                  View Attendance Reports
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Have a Question?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>Need help with registration or have questions about our live classes?</p>
+                <Button variant="outline" className="w-full">
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
