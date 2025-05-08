@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { format, isSameDay } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import LiveLectureHost from '@/components/LiveLectureHost';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock live classes
 const upcomingClasses = [
@@ -107,6 +108,7 @@ const LiveClasses = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [hostingTab, setHostingTab] = useState('upcoming');
+  const { toast } = useToast();
   
   // Get dates that have classes scheduled
   const classDateObjects = upcomingClasses.map(cls => new Date(cls.date));
@@ -117,6 +119,23 @@ const LiveClasses = () => {
   );
   
   const isAdminOrStaff = user?.role === 'admin' || user?.role === 'staff';
+  
+  const handleStartHostClass = (classId: string, classTitle: string) => {
+    if (isAdminOrStaff) {
+      setHostingTab('host');
+      toast({
+        title: "Starting class session",
+        description: `Setting up "${classTitle}" lecture room`,
+      });
+    } else {
+      // For students, navigate to join the class
+      navigate(`/live-classes/join/${classId}`);
+      toast({
+        title: "Joining class",
+        description: `Connecting to "${classTitle}"`,
+      });
+    }
+  };
   
   return (
     <div className="space-y-8">
@@ -186,8 +205,10 @@ const LiveClasses = () => {
                         <div className="text-sm text-muted-foreground">
                           {cls.enrolled} enrolled (of {cls.capacity} spots)
                         </div>
-                        <Button>
-                          {isAdminOrStaff ? "Manage Class" : "Join Class"}
+                        <Button 
+                          onClick={() => handleStartHostClass(cls.id, cls.title)}
+                        >
+                          {isAdminOrStaff ? "Start/Host Class" : "Join Class"}
                         </Button>
                       </div>
                     </div>
@@ -252,6 +273,10 @@ const LiveClasses = () => {
                   onStreamStart={(lectureDetails) => {
                     // In a real app, this would save the lecture to backend
                     console.log("Lecture started:", lectureDetails);
+                    toast({
+                      title: "Lecture started",
+                      description: `Your "${lectureDetails.title}" lecture is now live`,
+                    });
                   }}
                 />
               </TabsContent>

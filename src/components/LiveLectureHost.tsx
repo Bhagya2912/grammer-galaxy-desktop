@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { Video, Users, Presentation, Share2, MessageSquare } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Video, VideoOff, Mic, MicOff, Users, Presentation, Share2, MessageSquare, Monitor } from 'lucide-react';
+import VideoMeeting from './VideoMeeting';
 
 interface LiveLectureHostProps {
   onStreamStart?: (lectureDetails: any) => void;
@@ -28,6 +29,10 @@ const LiveLectureHost: React.FC<LiveLectureHostProps> = ({
   const [allowChat, setAllowChat] = useState(true);
   const [attendees, setAttendees] = useState<string[]>([]);
   const [streamUrl, setStreamUrl] = useState('');
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [screenShareEnabled, setScreenShareEnabled] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Mock function to start a stream
   const startStream = () => {
@@ -75,6 +80,45 @@ const LiveLectureHost: React.FC<LiveLectureHostProps> = ({
     });
   };
 
+  // Toggle functions for controls
+  const toggleMic = () => {
+    setMicEnabled(!micEnabled);
+    toast({
+      title: micEnabled ? "Microphone muted" : "Microphone unmuted",
+      description: micEnabled ? "Others cannot hear you now" : "Others can hear you now",
+    });
+  };
+
+  const toggleCamera = () => {
+    setCameraEnabled(!cameraEnabled);
+    toast({
+      title: cameraEnabled ? "Camera turned off" : "Camera turned on",
+      description: cameraEnabled ? "Others cannot see you now" : "Others can see you now",
+    });
+  };
+
+  const toggleScreenShare = () => {
+    setScreenShareEnabled(!screenShareEnabled);
+    toast({
+      title: screenShareEnabled ? "Screen sharing stopped" : "Screen sharing started",
+      description: screenShareEnabled ? "Your screen is no longer shared" : "Your screen is now visible to attendees",
+    });
+  };
+
+  const toggleChat = () => {
+    setChatOpen(!chatOpen);
+  };
+
+  const shareLectureLink = () => {
+    // In a real app, this would generate a shareable link
+    const shareableLink = `https://grammers-gallery.com/join/${streamKey}`;
+    navigator.clipboard.writeText(shareableLink);
+    toast({
+      title: "Link copied",
+      description: "Lecture link has been copied to clipboard",
+    });
+  };
+
   // Simulate new student joining every few seconds (for demo purposes)
   useEffect(() => {
     if (!isStreaming) return;
@@ -109,131 +153,147 @@ const LiveLectureHost: React.FC<LiveLectureHostProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Host a Live Lecture</CardTitle>
-          <CardDescription>
-            Set up and manage your live lecture for students
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="lectureTitle">Lecture Title</Label>
-            <Input 
-              id="lectureTitle"
-              placeholder="Introduction to Grammar Rules" 
-              value={lectureTitle} 
-              onChange={(e) => setLectureTitle(e.target.value)} 
-              disabled={isStreaming}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="lectureDescription">Description</Label>
-            <Textarea 
-              id="lectureDescription"
-              placeholder="Provide a brief description of your lecture..." 
-              value={lectureDescription} 
-              onChange={(e) => setLectureDescription(e.target.value)}
-              disabled={isStreaming}
-              rows={3}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="streamKey">Stream Key</Label>
-            <div className="flex gap-2">
+      {!isStreaming ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Host a Live Lecture</CardTitle>
+            <CardDescription>
+              Set up and manage your live lecture for students
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="lectureTitle">Lecture Title</Label>
               <Input 
-                id="streamKey"
-                placeholder="Your unique stream key" 
-                value={streamKey} 
-                onChange={(e) => setStreamKey(e.target.value)}
+                id="lectureTitle"
+                placeholder="Introduction to Grammar Rules" 
+                value={lectureTitle} 
+                onChange={(e) => setLectureTitle(e.target.value)} 
                 disabled={isStreaming}
               />
-              <Button variant="outline" disabled={isStreaming}>
-                Generate
-              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              This is your unique stream identifier. Keep it private.
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="allowChat"
-              checked={allowChat}
-              onCheckedChange={setAllowChat}
-              disabled={isStreaming}
-            />
-            <Label htmlFor="allowChat">Enable student chat</Label>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          {!isStreaming ? (
+            
+            <div className="space-y-2">
+              <Label htmlFor="lectureDescription">Description</Label>
+              <Textarea 
+                id="lectureDescription"
+                placeholder="Provide a brief description of your lecture..." 
+                value={lectureDescription} 
+                onChange={(e) => setLectureDescription(e.target.value)}
+                disabled={isStreaming}
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="streamKey">Meeting ID</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="streamKey"
+                  placeholder="Your unique meeting ID" 
+                  value={streamKey} 
+                  onChange={(e) => setStreamKey(e.target.value)}
+                  disabled={isStreaming}
+                />
+                <Button 
+                  variant="outline" 
+                  disabled={isStreaming}
+                  onClick={() => {
+                    const randomId = `grammar-${Math.random().toString(36).substring(2, 8)}`;
+                    setStreamKey(randomId);
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This is your unique meeting identifier. Share it with students to join.
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="allowChat"
+                checked={allowChat}
+                onCheckedChange={setAllowChat}
+                disabled={isStreaming}
+              />
+              <Label htmlFor="allowChat">Enable student chat</Label>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
             <Button onClick={startStream} className="w-full">
               <Video className="mr-2 h-4 w-4" /> 
-              Start Streaming
+              Start Lecture
             </Button>
-          ) : (
-            <Button onClick={stopStream} variant="destructive" className="w-full">
-              <Video className="mr-2 h-4 w-4" /> 
-              End Stream
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-      
-      {isStreaming && (
+          </CardFooter>
+        </Card>
+      ) : (
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Live Stream</CardTitle>
+              <CardTitle>Live Lecture: {lectureTitle}</CardTitle>
               <CardDescription>
-                {lectureTitle} - Currently Broadcasting
+                Currently Broadcasting - {attendees.length} students attending
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Placeholder for the video stream */}
-              <div className="aspect-video bg-black relative rounded-md overflow-hidden flex items-center justify-center">
-                <div className="text-white text-center">
-                  <Video size={48} className="mx-auto mb-2" />
-                  <p className="text-sm">Your camera feed would appear here</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    In a real implementation, this would show your webcam feed
-                  </p>
-                </div>
-                <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 text-xs rounded-md flex items-center">
-                  <span className="h-2 w-2 bg-white rounded-full mr-1 animate-pulse"></span>
-                  LIVE
-                </div>
-                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 text-xs rounded-md">
-                  {attendees.length} viewers
-                </div>
-              </div>
+              <VideoMeeting 
+                meetingId={streamKey}
+                micEnabled={micEnabled}
+                cameraEnabled={cameraEnabled}
+                screenShareEnabled={screenShareEnabled}
+                isHost={true}
+              />
             </CardContent>
             <CardFooter className="flex justify-center gap-2">
-              <Button variant="outline" size="icon" title="Toggle microphone">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                  <line x1="12" x2="12" y1="19" y2="22"></line>
-                </svg>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                title={micEnabled ? "Mute microphone" : "Unmute microphone"}
+                onClick={toggleMic}
+                className={!micEnabled ? "bg-red-100" : ""}
+              >
+                {micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
               </Button>
-              <Button variant="outline" size="icon" title="Toggle camera">
-                <Video size={20} />
+              <Button 
+                variant="outline" 
+                size="icon" 
+                title={cameraEnabled ? "Turn off camera" : "Turn on camera"}
+                onClick={toggleCamera}
+                className={!cameraEnabled ? "bg-red-100" : ""}
+              >
+                {cameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
               </Button>
-              <Button variant="outline" size="icon" title="Share screen">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                title={screenShareEnabled ? "Stop sharing screen" : "Share screen"}
+                onClick={toggleScreenShare}
+                className={screenShareEnabled ? "bg-green-100" : ""}
+              >
                 <Presentation size={20} />
               </Button>
-              <Button variant="outline" size="icon" title="Share lecture link">
+              <Button variant="outline" size="icon" title="Share lecture link" onClick={shareLectureLink}>
                 <Share2 size={20} />
               </Button>
-              <Button variant="outline" size="icon" title="Chat with students">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                title={chatOpen ? "Close chat" : "Open chat with students"}
+                onClick={toggleChat}
+                className={chatOpen ? "bg-green-100" : ""}
+              >
                 <MessageSquare size={20} />
               </Button>
             </CardFooter>
           </Card>
+          
+          <div className="flex justify-center">
+            <Button onClick={stopStream} variant="destructive" className="px-8">
+              End Lecture
+            </Button>
+          </div>
           
           <Card>
             <CardHeader>
