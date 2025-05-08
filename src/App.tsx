@@ -19,6 +19,7 @@ import Registration from "./pages/Registration";
 import StaffRegistration from "./pages/StaffRegistration";
 import ApplicationForm from "./pages/ApplicationForm";
 import Payment from "./pages/Payment";
+import LiveClassJoin from "./pages/LiveClassJoin";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/courses" element={<Courses />} />
               <Route path="/courses/:courseId" element={<CourseDetail />} />
               <Route path="/live-classes" element={<LiveClasses />} />
+              <Route path="/live-classes/join/:classId" element={<LiveClassJoin />} />
               <Route path="/forum" element={<Forum />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />

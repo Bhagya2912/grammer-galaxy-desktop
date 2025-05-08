@@ -21,15 +21,44 @@ const VideoMeeting: React.FC<VideoMeetingProps> = ({
   const { toast } = useToast();
   const [participants, setParticipants] = useState<string[]>(['Host', 'Student1', 'Student2']);
   const [activeParticipant, setActiveParticipant] = useState('Host');
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
 
   // This would integrate with a real video API in a production app
   useEffect(() => {
     // Simulate connection to a video meeting
-    toast({
-      title: "Connected to meeting",
-      description: `Meeting ID: ${meetingId}`,
-    });
+    const connectToMeeting = async () => {
+      try {
+        // Simulate connection delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        setIsConnected(true);
+        toast({
+          title: "Connected to meeting",
+          description: `Meeting ID: ${meetingId}`,
+        });
+      } catch (error) {
+        if (connectionAttempts < 3) {
+          setConnectionAttempts(prev => prev + 1);
+          toast({
+            title: "Connection failed",
+            description: `Attempting to reconnect (${connectionAttempts + 1}/3)...`,
+            variant: "destructive"
+          });
+          // Try again after a delay
+          setTimeout(connectToMeeting, 2000);
+        } else {
+          toast({
+            title: "Unable to connect",
+            description: "Please check your internet connection and try again.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
 
+    connectToMeeting();
+    
     // Simulate participant changes
     const interval = setInterval(() => {
       // Randomly change active speaker
@@ -40,7 +69,23 @@ const VideoMeeting: React.FC<VideoMeetingProps> = ({
     return () => {
       clearInterval(interval);
     };
-  }, [meetingId, toast, participants]);
+  }, [meetingId, toast, participants, connectionAttempts]);
+
+  if (!isConnected) {
+    return (
+      <div className="aspect-video bg-black relative rounded-md overflow-hidden flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="font-medium">Connecting to meeting...</p>
+          {connectionAttempts > 0 && (
+            <p className="text-xs text-gray-400 mt-2">
+              Attempt {connectionAttempts + 1}/3
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="video-meeting-container">
@@ -86,10 +131,24 @@ const VideoMeeting: React.FC<VideoMeetingProps> = ({
           </div>
         )}
         
+        {/* Connection quality indicator */}
+        <div className="absolute top-4 right-4 bg-black/60 text-white px-2 py-1 text-xs rounded-md flex items-center">
+          <span className="h-2 w-2 bg-green-500 rounded-full mr-1"></span>
+          Good Connection
+        </div>
+        
         {/* Participants count */}
         <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 text-xs rounded-md">
           {participants.length} participants
         </div>
+        
+        {/* Mic muted indicator */}
+        {!micEnabled && (
+          <div className="absolute bottom-4 left-4 bg-black/60 text-white px-2 py-1 text-xs rounded-md flex items-center">
+            <span className="h-2 w-2 bg-red-500 rounded-full mr-1"></span>
+            Mic Off
+          </div>
+        )}
       </div>
       
       {/* Participant thumbnails */}
@@ -107,6 +166,7 @@ const VideoMeeting: React.FC<VideoMeetingProps> = ({
             </div>
             <div className="absolute bottom-0 left-0 right-0 bg-black/70 py-1 px-2 text-xs text-white truncate">
               {participant}
+              {index === 0 && !isHost && <span className="ml-1">(Host)</span>}
             </div>
           </div>
         ))}
