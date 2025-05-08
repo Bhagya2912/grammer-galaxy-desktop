@@ -24,20 +24,40 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const TopBar = () => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
+    toast({
+      title: "Search initiated",
+      description: `Searching for: ${searchQuery}`,
+    });
     // Implement search functionality
   };
 
   const navigateTo = (path: string) => {
     navigate(path);
+  };
+
+  const handleNotificationClick = (notification: string) => {
+    console.log('Notification clicked:', notification);
+    toast({
+      title: "Notification",
+      description: `You clicked: ${notification}`,
+    });
+    // Additional notification handling if needed
+  };
+
+  const handleViewAllNotifications = () => {
+    navigateTo('/notifications');
+    console.log('Navigating to all notifications');
   };
 
   return (
@@ -161,21 +181,21 @@ const TopBar = () => {
               <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleNotificationClick("New course available")}>
                   <div className="flex flex-col gap-1">
                     <p className="font-medium">New course available</p>
                     <p className="text-sm text-muted-foreground">Advanced Grammar Rules is now available</p>
                     <p className="text-xs text-muted-foreground mt-1">2 hours ago</p>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleNotificationClick("Live class starting soon")}>
                   <div className="flex flex-col gap-1">
                     <p className="font-medium">Live class starting soon</p>
                     <p className="text-sm text-muted-foreground">Join "Common Grammar Mistakes" in 30 minutes</p>
                     <p className="text-xs text-muted-foreground mt-1">30 minutes ago</p>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="justify-center">
+                <DropdownMenuItem className="justify-center" onClick={handleViewAllNotifications}>
                   <Button variant="link" className="w-full">View all notifications</Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>

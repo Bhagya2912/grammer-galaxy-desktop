@@ -3,6 +3,7 @@ import React from 'react';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import { useLocation } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,7 +14,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isAuthPage = location.pathname === '/auth';
 
   if (isAuthPage) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <Toaster />
+      </>
+    );
   }
 
   return (
@@ -25,6 +31,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           {children}
         </main>
       </div>
+      <Toaster />
     </div>
   );
 };
