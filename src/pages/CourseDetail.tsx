@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,67 @@ const coursesData = [
       { user: 'Robert K.', rating: 5, comment: 'The practice exercises really helped me understand the concepts.' },
     ]
   },
-  // Add other courses as needed
+  {
+    id: '2',
+    title: 'Advanced English Writing',
+    description: 'Take your English writing skills to the next level with our advanced course. Perfect for intermediate to advanced learners who want to refine their writing abilities. This course covers advanced grammar concepts, stylistic techniques, persuasive writing, and professional documentation.',
+    level: 'Advanced',
+    category: 'Writing',
+    students: 876,
+    duration: '8 weeks',
+    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
+    popular: true,
+    price: '$49.99',
+    instructor: {
+      name: 'Prof. Mark Wilson',
+      bio: 'Award-winning author and professor with 20+ years of experience teaching advanced writing techniques.',
+      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    },
+    modules: [
+      {
+        title: 'Advanced Writing Principles',
+        lessons: [
+          { title: 'Beyond Basic Grammar', duration: '15 mins', type: 'video' },
+          { title: 'Style and Tone', duration: '12 mins', type: 'reading' },
+          { title: 'Writing for Different Audiences', duration: '18 mins', type: 'video' },
+        ]
+      },
+      {
+        title: 'Persuasive Writing',
+        lessons: [
+          { title: 'Elements of Persuasion', duration: '20 mins', type: 'video' },
+          { title: 'Logical Arguments', duration: '15 mins', type: 'video' },
+          { title: 'Emotional Appeals', duration: '12 mins', type: 'video' },
+          { title: 'Persuasive Writing Exercise', duration: '30 mins', type: 'quiz' },
+        ]
+      },
+      {
+        title: 'Professional Documentation',
+        lessons: [
+          { title: 'Business Reports', duration: '25 mins', type: 'video' },
+          { title: 'Technical Documentation', duration: '22 mins', type: 'video' },
+          { title: 'Academic Writing', duration: '20 mins', type: 'video' },
+          { title: 'Professional Writing Assessment', duration: '45 mins', type: 'quiz' },
+        ]
+      },
+      {
+        title: 'Creative Writing Techniques',
+        lessons: [
+          { title: 'Narrative Structures', duration: '18 mins', type: 'video' },
+          { title: 'Character Development', duration: '20 mins', type: 'video' },
+          { title: 'Descriptive Writing', duration: '15 mins', type: 'video' },
+          { title: 'Creative Writing Project', duration: '60 mins', type: 'quiz' },
+        ]
+      },
+    ],
+    reviews: [
+      { user: 'Emily R.', rating: 5, comment: 'This course transformed my writing completely. Highly recommended!' },
+      { user: 'David T.', rating: 5, comment: 'Professor Wilson's teaching style is engaging and effective.' },
+      { user: 'Sophia K.', rating: 4, comment: 'Challenging but extremely rewarding. Great for serious writers.' },
+      { user: 'James L.', rating: 5, comment: 'The professional documentation section was particularly helpful for my career.' },
+    ]
+  }
+  // ... keep existing code (additional courses data if any)
 ];
 
 const CourseDetail = () => {
